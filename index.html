@@ -2,12 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Manifiesto RPBI Ecologico</title>
+    <title>Manifiesto RPBI Ecológico</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light p-4">
     <div class="container">
-        <h2 class="text-success border-bottom pb-2">☣️ Control de Residuos Biologico Infecciosos</h2>
+        <h2 class="text-success border-bottom pb-2">☣️ Control de Residuos Biológico Infecciosos</h2>
         
         <!-- Tarjetas de resumen -->
         <div class="row mb-4 text-center">
@@ -18,17 +18,17 @@
             </div>
             <div class="col-md-6">
                 <div class="p-3 bg-warning text-dark rounded shadow-sm">
-                    Total Patologicos: <span id="totPato" class="fs-4 fw-bold">0</span> kg
+                    Total Patológicos: <span id="totPato" class="fs-4 fw-bold">0</span> kg
                 </div>
             </div>
         </div>
         <div class="row">
             <div class="col-md-4">
                 <div class="card p-3 shadow-sm">
-                    <input type="text" id="areaHosp" class="form-control mb-2" placeholder="Area (Ej. Quirofano 1)">
+                    <input type="text" id="areaHosp" class="form-control mb-2" placeholder="Área (Ej. Quirófano 1)">
                     <select id="tipoRPBI" class="form-select mb-2">
                         <option value="punzocortante">Punzocortante (Rojo)</option>
-                        <option value="patologico">Patologico (Amarillo)</option>
+                        <option value="patologico">Patológico (Amarillo)</option>
                     </select>
                     <input type="number" step="0.1" id="pesoKg" class="form-control mb-3" placeholder="Peso en Kg">
                     <button id="btnAgregarResiduo" class="btn btn-success w-100">Registrar Bolsa/Recipiente</button>
@@ -41,6 +41,89 @@
             </div>
         </div>
     </div>
-    <script src="../JS/funciones.js"></script>
+
+    <!-- AQUÍ ESTÁ EL JAVASCRIPT INTEGRADO, ADIÓS AL ERROR 404 -->
+    <script>
+        class ResiduoRPBI {
+            constructor(area, tipo, peso) {
+                this.area = area;
+                this.tipo = tipo;
+                this.peso = parseFloat(peso);
+            }
+        }
+
+        const areaHosp = document.getElementById('areaHosp');
+        const tipoRPBI = document.getElementById('tipoRPBI');
+        const pesoKg = document.getElementById('pesoKg');
+        const btnAgregarResiduo = document.getElementById('btnAgregarResiduo');
+        const listaResiduos = document.getElementById('listaResiduos');
+        const totPunzo = document.getElementById('totPunzo');
+        const totPato = document.getElementById('totPato');
+
+        let historialResiduos = JSON.parse(localStorage.getItem('rpbiData')) || [];
+
+        function actualizarInterfaz() {
+            listaResiduos.innerHTML = '';
+            let sumaPunzocortantes = 0;
+            let sumaPatologicos = 0;
+
+            historialResiduos.forEach((residuo, index) => {
+                if (residuo.tipo === 'punzocortante') {
+                    sumaPunzocortantes += residuo.peso;
+                } else if (residuo.tipo === 'patologico') {
+                    sumaPatologicos += residuo.peso;
+                }
+
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                
+                const badgeClass = residuo.tipo === 'punzocortante' ? 'bg-danger' : 'bg-warning text-dark';
+                const tipoTexto = residuo.tipo === 'punzocortante' ? 'Punzocortante (Rojo)' : 'Patológico (Amarillo)';
+
+                li.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-sm btn-outline-danger me-3" onclick="eliminarResiduo(${index})">X</button>
+                        <div>
+                            <strong class="text-uppercase">${residuo.area}</strong><br>
+                            <small class="text-muted">${tipoTexto}</small>
+                        </div>
+                    </div>
+                    <span class="badge ${badgeClass} rounded-pill fs-6">${residuo.peso.toFixed(2)} kg</span>
+                `;
+                listaResiduos.appendChild(li);
+            });
+
+            totPunzo.textContent = sumaPunzocortantes.toFixed(2);
+            totPato.textContent = sumaPatologicos.toFixed(2);
+        }
+
+        function eliminarResiduo(index) {
+            historialResiduos.splice(index, 1);
+            localStorage.setItem('rpbiData', JSON.stringify(historialResiduos));
+            actualizarInterfaz();
+        }
+
+        btnAgregarResiduo.addEventListener('click', () => {
+            const areaVal = areaHosp.value.trim();
+            const tipoVal = tipoRPBI.value;
+            const pesoVal = pesoKg.value;
+
+            if (areaVal === '' || pesoVal === '' || pesoVal <= 0) {
+                alert('Por favor, ingresa un área válida y un peso mayor a 0.');
+                return;
+            }
+
+            const nuevoResiduo = new ResiduoRPBI(areaVal, tipoVal, pesoVal);
+            historialResiduos.push(nuevoResiduo);
+            localStorage.setItem('rpbiData', JSON.stringify(historialResiduos));
+            actualizarInterfaz();
+
+            areaHosp.value = '';
+            pesoKg.value = '';
+            areaHosp.focus();
+        });
+
+        document.addEventListener('DOMContentLoaded', actualizarInterfaz);
+    </script>
 </body>
 </html>
