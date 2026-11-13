@@ -1,4 +1,4 @@
-// 1. Clase ResiduoRPBI
+
 class ResiduoRPBI {
     constructor(area, tipo, peso) {
         this.area = area;
